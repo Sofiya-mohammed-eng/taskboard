@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taskboard</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 480px; margin: 3rem auto; padding: 0 1rem; }
+    form { display: flex; gap: 0.5rem; }
+    input { flex: 1; padding: 0.5rem; }
+    button { padding: 0.5rem 1rem; }
+    li { padding: 0.4rem 0; }
+    #error { color: #b00020; }
+  </style>
+</head>
+<body>
+  <h1>Taskboard</h1>
+  <form id="form">
+    <input id="title" maxlength="200" placeholder="New task" required>
+    <button type="submit">Add</button>
+  </form>
+  <p id="error"></p>
+  <ul id="list"></ul>
+
+  <script>
+    const list = document.getElementById("list");
+    const error = document.getElementById("error");
+
+    async function load() {
+      const res = await fetch("/api/tasks");
+      const tasks = await res.json();
+      list.replaceChildren();
+      for (const t of tasks) {
+        const li = document.createElement("li");
+        li.textContent = t.title;
+        list.appendChild(li);
+      }
+    }
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("title");
+      error.textContent = "";
+      const res = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: input.value }),
+      });
+      if (!res.ok) {
+        error.textContent = "Could not add task.";
+        return;
+      }
+      input.value = "";
+      load();
+    });
+
+    load();
+  </script>
+</body>
+</html>
