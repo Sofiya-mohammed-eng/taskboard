@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: taskboard
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: taskboard
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U taskboard -d taskboard"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build test image
+        run: docker build --target test -t taskboard-api:test ./api
+      - name: Run tests against Postgres
+        run: >
+          docker run --rm --network host
+          -e DB_HOST=localhost
+          -e POSTGRES_USER=taskboard
+          -e POSTGRES_PASSWORD=ci-only-password
+          -e POSTGRES_DB=taskboard
+          taskboard-api:test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API runtime image
+        run: docker build --target runtime -t taskboard-api:ci ./api
+      - name: Build frontend image
+        run: docker build -t taskboard-frontend:ci ./frontend
