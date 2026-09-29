@@ -21,3 +21,8 @@ a production-style CI/CD workflow.
 - Changes reach `main` only through a pull request. CI must pass before merging.
 - Pull requests are squash-merged to keep history readable.
 - Releases are version tags on `main`, e.g. `v0.1.0`.
+
+## Documentation
+
+- [Architecture diagram](docs/architecture.md)
+- [Runbook: deploy, roll back, troubleshoot](docs/RUNBOOK.md)
